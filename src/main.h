@@ -54,7 +54,7 @@ static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20
 static const int MAX_SCRIPTCHECK_THREADS = 16;
 
 static const uint256 hashGenesisBlock("0x000009038d39a5ecfecf6a15cc7c49ff3c7bc0b23f8115902a9c0f3c9f72e9b9");
-static const uint256 hashGenesisBlockTestNet("0x000c763e402f2436da9ed36c7286f62c3f6e5dbafce9ff289bd43d7459327eb");
+static const uint256 hashGenesisBlockTestNet("0x000009038d39a5ecfecf6a15cc7c49ff3c7bc0b23f8115902a9c0f3c9f72e9b9");
 
 inline int64_t PastDrift(int64_t nTime)   { return nTime - ((3 * 3 + 10) * 60); } // up to this from the past
 inline int64_t FutureDrift(int64_t nTime) { return nTime + 5 * 60; } // up to 5 mins from the future
@@ -955,19 +955,28 @@ public:
     void UpdateTime(const CBlockIndex* pindexPrev);
 
     // ppcoin: entropy bit for stake modifier if chosen by modifier
+    // ppcoin: entropy bit for stake modifier if chosen by modifier
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
-        // Protocol switch to support p2pool at BioCoin block #0
-        // Protocol switch to support p2pool at Teslacoin block #9689
-     if (nHeight >= 9689 || fTestNet)
-     {
-         // Take last bit of block hash as entropy bit
-         unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
-         if (fDebug && GetBoolArg("-printstakemodifier"))
-             printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
-         return nEntropyBit;
-     }
+        // Protocol switch to support p2pool at XP block #0
+        if (nHeight >= 0 || fTestNet)
+        {
+            // Take last bit of block hash as entropy bit
+            unsigned int nEntropyBit = ((GetHash().Get64()) & 1ULL);
+            if (fDebug && GetBoolArg("-printstakemodifier"))
+                printf("GetStakeEntropyBit: nTime=%u hashBlock=%s nEntropyBit=%u\n", nTime, GetHash().ToString().c_str(), nEntropyBit);
+            return nEntropyBit;
+        }
 
+        // Before biocoin block #0 - get from pregenerated table
+        int nBitNum = nHeight & 0xFF;
+        int nItemNum = nHeight / 0xFF;
+
+        unsigned int nEntropyBit = (unsigned int) ((entropyStore[nItemNum] & (uint256(1) << nBitNum)) >> nBitNum).Get64();
+        if (fDebug && GetBoolArg("-printstakemodifier"))
+            printf("GetStakeEntropyBit: from pregenerated table, nHeight=%d nEntropyBit=%u\n", nHeight, nEntropyBit);
+        return nEntropyBit;
+    }
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
