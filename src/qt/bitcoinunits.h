@@ -20,7 +20,8 @@ public:
     {
         BTC,
         mBTC,
-        uBTC
+        uBTC,
+        seeds
     };
 
     //! @name Static API

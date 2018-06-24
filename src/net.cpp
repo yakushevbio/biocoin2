@@ -461,10 +461,11 @@ void CNode::CloseSocketDisconnect()
     if (this == pnodeSync)
         pnodeSync = NULL;
 }
-
 void CNode::Cleanup()
 {
+
 }
+
 
 
 void CNode::PushVersion()
@@ -939,11 +940,13 @@ void ThreadSocketHandler2(void* parg)
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-    {"seed1.cryptolife.net", "seed1.cryptolife.net"},
-	{"seed2.cryptolife.net", "seed2.cryptolife.net"},
-	{"seed3.cryptolife.net", "seed3.cryptolife.net"},
-	{"seed4.cryptolife.net", "seed4.cryptolife.net"},
-    {"seed5.cryptolife.net", "seed5.cryptolife.net"}
+    {"dnsseed.biocoin.help", "dnsseed.biocoin.help"},
+    {"v1.seedbiocoin.ru", "dns1.seedbiocoin.ru"},
+    {"v1.seedbiocoin.ru", "dns2.seedbiocoin.ru"},
+    {"v1.seedbiocoin.ru", "dns3.seedbiocoin.ru"},
+    {"v1.seedbiocoin.ru", "dns4.seedbiocoin.ru"},
+    {"v1.seedbiocoin.ru", "dns5.seedbiocoin.ru"},
+    {"", ""}
 };
 
 void ThreadDNSAddressSeed(void* parg)
@@ -1013,12 +1016,10 @@ void ThreadDNSAddressSeed2(void* parg)
 
 uint32_t pnSeed[] =
 {
-    0x959a43d0, 0xc243d0d8, 0x6bb5a1c0, 0x894a3a8b, 0xb90e1fbf, 0x4e18d909, 0xae8a49b6, 0x8ac59754, 0xa5e34059, 0x80c7838c,
-    0x8b3b4b26, 0x43cdbed9, 0xbce2b05a, 0xb23e64d1, 0xa5e38b85, 0x8ac59335, 0x8b3b23de, 0x80c7ff75, 0x8a44e361, 0xa5e34059,
-    0x8ac59754, 0xbca6fa64, 0xb23ee33c
+0x2D209C64, 0x2D4DF8FD, 0xC7F71AEF,
 };
 
-const char* pchTorSeed[] = 
+const char* pchTorSeed[] =
 {};
 
 void DumpAddresses()
@@ -1675,21 +1676,22 @@ void StartNode(void* parg)
     Discover();
 
     //
-    // Start threads
-    //
+   // Start threads
+   //
 
-    if (!GetBoolArg("-dnsseed", true))
-        printf("DNS seeding disabled\n");
-    else
-        if (!NewThread(ThreadDNSAddressSeed, NULL))
-            printf("Error: NewThread(ThreadDNSAddressSeed) failed\n");
+   if (!GetBoolArg("-dnsseed", true))
+       printf("DNS seeding disabled\n");
+   else
+       if (!NewThread(ThreadDNSAddressSeed, NULL))
+           printf("Error: NewThread(ThreadDNSAddressSeed) failed\n");
 
-    // Get addresses from IRC and advertise ours
-    if (!GetBoolArg("-irc", true))
-        printf("IRC seeding disabled\n");
-    else
-        if (!NewThread(ThreadIRCSeed, NULL))
-            printf("Error: NewThread(ThreadIRCSeed) failed\n");
+   // Get addresses from IRC and advertise ours
+   if (!GetBoolArg("-irc", true))
+       printf("IRC seeding disabled\n");
+   else
+       if (!NewThread(ThreadIRCSeed, NULL))
+           printf("Error: NewThread(ThreadIRCSeed) failed\n");
+
 
     // Send and receive from sockets, accept connections
     if (!NewThread(ThreadSocketHandler, NULL))
